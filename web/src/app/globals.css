@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #0f172a;
+  --background: #f8fafc;
+}
+
+.dark {
+  --foreground: #f1f5f9;
+  --background: #0f172a;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-200 dark:bg-surface-800 rounded-full;
+}
+
+/* Smooth page transitions */
+.page-transition {
+  @apply animate-fade-in;
+}
+
+/* Status indicator pulse */
+.status-online {
+  @apply relative;
+}
+.status-online::before {
+  content: '';
+  @apply absolute -inset-0.5 bg-green-400 rounded-full animate-ping opacity-75;
+}
+
+/* Terminal styles */
+.xterm {
+  padding: 8px;
+}

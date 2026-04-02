@@ -1,0 +1,143 @@
+# ============================================================================
+# Opersis Assist — Production Docker Compose
+# Coolify-compatible: all build contexts relative to the repo root
+# ============================================================================
+
+services:
+  # ── Backend API Server ──
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: opersis-backend
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - HOST=0.0.0.0
+      - MONGODB_URI=mongodb://opersis:${MONGO_PASSWORD}@mongodb:27017/opersis-assist?authSource=admin
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET}
+      - AGENT_SECRET=${AGENT_SECRET}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      # Admin seed (only used on first boot when DB is empty)
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_NAME=${ADMIN_NAME:-Super Admin}
+    ports:
+      - "${BACKEND_PORT:-4000}:4000"
+    networks:
+      - opersis-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ── Web Frontend ──
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+        - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    container_name: opersis-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - opersis-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.25"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ── MongoDB ──
+  mongodb:
+    image: mongo:7.0
+    container_name: opersis-mongodb
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=opersis
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=opersis-assist
+    command: ["mongod", "--bind_ip_all", "--quiet"]
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - opersis-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Redis ──
+  redis:
+    image: redis:7-alpine
+    container_name: opersis-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - opersis-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+          cpus: "0.25"
+
+volumes:
+  mongo-data:
+  redis-data:
+
+networks:
+  opersis-network:
+    driver: bridge

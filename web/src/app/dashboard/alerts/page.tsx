@@ -42,7 +42,7 @@ export default function AlertsPage() {
     const unsub = dashboardSocket.on('alert.new', (msg: any) => {
       setAlerts((prev) => [msg.alert, ...prev]);
     });
-    return unsub;
+    return () => { unsub(); };
   }, []);
 
   const handleAcknowledge = async (id: string) => {

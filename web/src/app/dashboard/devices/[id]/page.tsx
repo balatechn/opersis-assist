@@ -23,7 +23,7 @@ export default function DeviceDetailPage() {
         fetchDevice(deviceId);
       }
     });
-    return unsub;
+    return () => { unsub(); };
   }, [deviceId]);
 
   if (!selectedDevice) {

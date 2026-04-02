@@ -13,6 +13,7 @@ const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const deviceRoutes = require('./routes/devices');
 const alertRoutes = require('./routes/alerts');
+const agentRoutes = require('./routes/agent');
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/alerts', alertRoutes);
+app.use('/api/agent', agentRoutes);
 
 // ── 404 Handler ──
 app.use((_req, res) => {

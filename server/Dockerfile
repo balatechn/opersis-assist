@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install --production
 COPY src ./src
+COPY agent-installer ./agent-installer
 
 FROM node:20-alpine
 RUN apk add --no-cache wget \
@@ -12,6 +13,7 @@ RUN apk add --no-cache wget \
 WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/agent-installer ./agent-installer
 COPY --from=builder /app/package.json ./
 RUN mkdir -p logs && chown -R opersis:opersis /app
 USER opersis

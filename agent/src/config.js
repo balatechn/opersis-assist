@@ -1,8 +1,19 @@
 const path = require('path');
 const fs = require('fs');
 
-// Load .env if present
-const envPath = path.join(__dirname, '..', '.env');
+// Detect if running as a pkg-compiled exe
+const isPkg = typeof process.pkg !== 'undefined';
+const exeDir = isPkg ? path.dirname(process.execPath) : path.join(__dirname, '..');
+
+// Load config.json next to the exe (standalone mode)
+const configJsonPath = path.join(exeDir, 'config.json');
+let fileConfig = {};
+if (fs.existsSync(configJsonPath)) {
+  try { fileConfig = JSON.parse(fs.readFileSync(configJsonPath, 'utf8')); } catch {}
+}
+
+// Load .env if present (dev mode)
+const envPath = path.join(exeDir, '.env');
 if (fs.existsSync(envPath)) {
   const envContent = fs.readFileSync(envPath, 'utf8');
   for (const line of envContent.split('\n')) {
@@ -15,7 +26,7 @@ if (fs.existsSync(envPath)) {
 }
 
 // Persistent device ID
-const configDir = path.join(process.env.PROGRAMDATA || path.join(__dirname, '..'), 'OpersisAssist');
+const configDir = path.join(process.env.PROGRAMDATA || exeDir, 'OpersisAssist');
 if (!fs.existsSync(configDir)) {
   fs.mkdirSync(configDir, { recursive: true });
 }
@@ -31,9 +42,9 @@ if (fs.existsSync(deviceIdFile)) {
 }
 
 const config = {
-  serverUrl: process.env.SERVER_URL || 'ws://localhost:4000/ws/agent',
-  agentSecret: process.env.AGENT_SECRET || 'dev-agent-secret-change-in-production',
-  statsInterval: parseInt(process.env.STATS_INTERVAL, 10) || 5000,
+  serverUrl: fileConfig.serverUrl || process.env.SERVER_URL || 'ws://localhost:4000/ws/agent',
+  agentSecret: fileConfig.agentSecret || process.env.AGENT_SECRET || 'dev-agent-secret-change-in-production',
+  statsInterval: parseInt(fileConfig.statsInterval || process.env.STATS_INTERVAL, 10) || 5000,
   deviceId,
   agentVersion: '1.0.0',
 };

@@ -7,8 +7,8 @@ services:
   # ── Backend API Server ──
   backend:
     build:
-      context: ./server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: server/Dockerfile
     container_name: opersis-backend
     restart: unless-stopped
     depends_on:

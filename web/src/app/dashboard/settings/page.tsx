@@ -22,7 +22,7 @@ export default function SettingsPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'opersis-assist-agent-installer.ps1';
+      a.download = 'opersis-assist-agent-windows.zip';
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -94,7 +94,7 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-surface-900 dark:text-white">Windows Agent</p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              v1.0.0 &middot; Windows 10/11, Server 2016+ &middot; PowerShell Installer
+              v1.0.0 &middot; Windows 10/11, Server 2016+ &middot; Standalone EXE
             </p>
           </div>
           <button
@@ -125,10 +125,11 @@ export default function SettingsPage() {
         <div className="mt-4 bg-surface-50 dark:bg-surface-800 rounded-lg p-4">
           <p className="text-xs font-semibold text-surface-700 dark:text-surface-300 mb-2">Installation Steps</p>
           <ol className="text-xs text-surface-600 dark:text-surface-400 space-y-1.5 list-decimal list-inside">
-            <li>Click <strong>Download</strong> to get the pre-configured installer</li>
-            <li>On the target machine, right-click the downloaded file → <strong>Run with PowerShell</strong> (as Administrator)</li>
-            <li>Or open PowerShell as Admin and run: <code className="bg-surface-200 dark:bg-surface-700 px-1 rounded">powershell -ExecutionPolicy Bypass -File .\opersis-assist-agent-installer.ps1</code></li>
-            <li>The agent will install as a Windows service and auto-connect to this server</li>
+            <li>Click <strong>Download</strong> to get the pre-configured agent ZIP</li>
+            <li>Extract the ZIP to a folder on the target machine</li>
+            <li>Right-click <code className="bg-surface-200 dark:bg-surface-700 px-1 rounded">install.bat</code> → <strong>Run as administrator</strong></li>
+            <li>The agent EXE will be installed as a Windows service and auto-connect to this server</li>
+            <li>To uninstall: right-click <code className="bg-surface-200 dark:bg-surface-700 px-1 rounded">uninstall.bat</code> → Run as administrator</li>
           </ol>
         </div>
       </div>

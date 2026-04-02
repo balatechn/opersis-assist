@@ -16,22 +16,26 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const ADMIN_NAME = process.env.ADMIN_NAME || 'Super Admin';
 
 async function seed() {
+  // If mongoose is not connected yet (standalone run), connect ourselves
+  const needsConnect = mongoose.connection.readyState === 0;
   try {
-    await mongoose.connect(config.mongodb.uri, {
-      maxPoolSize: 2,
-      serverSelectionTimeoutMS: 10000,
-    });
+    if (needsConnect) {
+      await mongoose.connect(config.mongodb.uri, {
+        maxPoolSize: 2,
+        serverSelectionTimeoutMS: 10000,
+      });
+    }
 
     const count = await User.countDocuments();
     if (count > 0) {
       console.log(`[seed] ${count} user(s) already exist — skipping seed.`);
-      await mongoose.disconnect();
+      if (needsConnect) await mongoose.disconnect();
       return;
     }
 
     if (!ADMIN_PASSWORD || ADMIN_PASSWORD.length < 8) {
       console.error('[seed] ADMIN_PASSWORD env var must be set (min 8 chars) for initial seed.');
-      await mongoose.disconnect();
+      if (needsConnect) await mongoose.disconnect();
       process.exit(1);
     }
 
@@ -44,10 +48,10 @@ async function seed() {
     });
 
     console.log(`[seed] Super-admin created: ${admin.email} (role: admin)`);
-    await mongoose.disconnect();
+    if (needsConnect) await mongoose.disconnect();
   } catch (err) {
     console.error('[seed] Failed:', err.message);
-    await mongoose.disconnect();
+    if (needsConnect) await mongoose.disconnect();
     process.exit(1);
   }
 }
